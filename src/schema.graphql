@@ -1,0 +1,162 @@
+# importing "OrderBy" fields from prisma.
+# ==> we literally use all of graphql's "orderby" Enum without modification
+# In this case, we can import the fields directly from graphql.prisma
+
+# When we need to grab multiple fieds from other files...
+# " import UserOrderByInput, somethingelse, something from './generated/prisma.graphql';"
+# import UserOrderByInput, PostOrderByInput, CommentOrderByInput   from './generated/prisma.graphql';
+
+type Query {
+    # Pagination!!
+    # first and second (built-in arg from prisma) 
+    #       ===> we can checkout this in 4466 url.
+    # first: Int ==> how many user will be displayed 
+    # skip: Int ==> where "first" starts
+    # after: ID ==> after specific User or Id
+    #  "after" is useful because when the specific user keeps displayed in each page
+    #      , it can skip the user in each page
+    # {
+    #    posts(
+    #       first: 2  => how many post will be display
+    #       skip: 2   => where "first" starts
+    #       after: "cjyaxii39001k07579n3dq6ue"  => after the specific user 
+    #   ) {
+    #       id
+    #       title
+    #       body
+    #   }
+    # }
+    # Keep in mind that when "skip" is higher than a number of data
+    #   it returns an empty array, not an error.
+
+    # orderBy: UserOrderByInput ===> Enum from graphql.prisma
+    users(query: String, first: Int, skip: Int, after: String, orderBy: UserOrderByInput): [User!]!
+
+    # Without Pagination
+    # users(query: String): [User!]!
+
+    posts(query: String, first: Int, skip: Int, after: String, orderBy: PostOrderByInput): [Post!]!
+    # posts(query: String): [Post!]!
+    myPosts(query: String, first: Int, skip: Int, after: String, orderBy: PostOrderByInput ): [Post!]!
+    comments (first: Int, skip: Int, after: String, orderBy: CommentOrderByInput ): [Comment!]!  
+    me: User!
+    post(id: ID!): Post!
+}
+
+type Mutation {
+    createUser(data: createUserInput!): AuthPayload!
+    deleteUser: User!
+    updateUser(data: updateUserInput ): User!
+    createPost(data: createPostInput!): Post!
+    deletePost(id: ID!): Post!
+    updatePost(id: ID!, data: updatePostInput): Post!
+    createComment(data: createCommentInput!): Comment!
+    deleteComment(id: ID!): Comment!
+    updateComment(id: ID!, data: updateCommentInput): Comment!
+    login(data: loginInput): AuthPayload!
+}
+
+type AuthPayload {
+    token: String!
+    user: User!
+}
+type Subscription {
+    comment(postId: ID!): CommentSubscriptionPayload!
+    post: PostSubscriptionPayload!
+    myPost: PostSubscriptionPayload!
+}
+
+type User {
+    id: ID!
+    name: String!
+    email: String
+    password: String!
+    posts: [Post!]!
+    comments: [Comment!]!
+
+    # Just remind the process of schema update in prisma and graphql
+    # Update "updatedAt and createdAt" in prisma schema
+    # "deploy schema"
+    # npm run get-schema
+    # update graphql's schema like the one below.
+
+    # Adding time information
+    # Time information in graphql not in prisma === String!!
+    updatedAt: String!
+    createdAt: String!
+}
+
+type Post {
+    id: ID!
+    title: String!
+    body: String!
+    published: Boolean
+    author: User!
+    comments: [Comment!]!
+    updatedAt: String!
+    createdAt: String!
+}
+
+type Comment {
+    id: ID!
+    text: String!
+    author: User!
+    post: Post!
+    updatedAt: String!
+    createdAt: String!
+}
+
+input createUserInput {
+    name: String!
+    email: String!
+    password: String!
+}
+
+input updateUserInput {
+    name: String
+    email: String
+    password: String
+}
+
+input createPostInput {
+    title: String!
+    body: String!
+    published: Boolean
+}
+
+input updatePostInput {
+    title: String
+    body: String
+    published: Boolean
+}
+
+input createCommentInput {
+    text: String!
+    post: ID!
+}
+
+input updateCommentInput {
+    text: String
+    post: ID!
+}
+
+input loginInput {
+    email: String!
+    password: String!
+}
+
+enum MutationType {
+    CREATED
+    UPDATED
+    DELETED    
+}
+
+type CommentSubscriptionPayload {
+    mutation: MutationType!
+    node: Comment
+}
+
+type PostSubscriptionPayload {
+    mutation: MutationType!
+    node: Post
+}
