@@ -16,10 +16,5 @@ const server = new GraphQLServer({
     fragmentReplacements
 })
 
-// Heroku does not use port number , 4000.
-// Heroku gives us its own port to the code by using prcess.env.PORT.
-//  Therefore, we need to set this variable.
-// We can still 4000 in the development mode.
-server.start({ port: process.env.PORT || 4000 }, () => console.log('Production_deployment'));
-// server.start(() => console.log('Production_deployment'));
+server.start({ port: process.env.PORT || 4000 }, () => console.log('test up!'));
 
