@@ -17,7 +17,6 @@ const User = {
     posts: {
         fragment: 'fragment userIdField on User { id }',
         resolve({ id }, args, { prisma }, info) {
-
             return prisma.query.posts({
                 where: {
                     published: true,
