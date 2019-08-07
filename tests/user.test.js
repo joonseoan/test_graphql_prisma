@@ -18,6 +18,8 @@ const client = getClient();
 
 // 3) 
 import seedDatabase, { userOne } from './utils/seedDatabase';
+
+import { createUser, getProfile, getUsers, login } from './utils/operations';
 beforeEach(seedDatabase);
 
 // 2) It is working but not much modularized. 
@@ -79,71 +81,166 @@ beforeEach(seedDatabase);
 //     });
 // });
 
+
+// // 2) Variable setup
+// const createUser = gql `
+//     mutation ($data: createUserInput!) {
+//         createUser(
+//             data: $data
+//         ) {
+//             token,
+//             user {
+//                 id
+//                 name
+//                 email
+//             }
+//         }
+//     }
+// `;
+
+// const getUsers = gql `
+//     query {
+//         users {
+//             id
+//             name
+//             email
+//         }
+//     }
+// `;
+
+// const login = gql `
+//     mutation ($data: loginInput!) {
+//         login(
+//             data: $data
+//         ) {
+//             token
+//             user {
+//                 id
+//                 name
+//                 email
+//             }
+//         }
+//     }
+// `;
+
+// const getProfile = gql `
+//     query {
+//         me {
+//             id
+//             name
+//             email
+//         }
+//     }
+// `;
+
 test('Should create a new user', async () => {
 
+    // 2) By using variable
+
+    const variables = {
+        data: {
+            email: "jsons@jsons.com",
+            name: "Jsons Andrew",
+            password: "asdfghjk"
+        }
+    }
+
+    const response = await client.mutate({ 
+        mutation: createUser, 
+        variables
+    });
+
+    // 1) Hard coding
     // Can't rerun because the email must be unique.
     //  in this case, error is thrown in the application code,
     //  not from the test code.
-    const createUser = gql `
-        mutation {
-            createUser(
-                data: {
-                    email: "jsons@jsons.com"
-                    name: "Jsons Andrew"
-                    password: "asdfghjk"
-                }
-            ) {
-                token,
-                user {
-                    id
-                }
-            }
-        }
-    `;
+    
+    // const createUser = gql `
+    //     mutation {
+    //         createUser(
+    //             data: {
+    //                 email: "jsons@jsons.com"
+    //                 name: "Jsons Andrew"
+    //                 password: "asdfghjk"
+    //             }
+    //         ) {
+    //             token,
+    //             user {
+    //                 id
+    //             }
+    //         }
+    //     }
+    // `;
 
     // createUser ===> goes through resolver in grapqhQL
-    const response = await client.mutate({ mutation: createUser });
+    // const response = await client.mutate({ mutation: createUser });
+
     const userVerified = await prisma.exists.User({ id: response.data.createUser.user.id });
     expect(userVerified).toBe(true);
+
 });
 
 test('should expose public author profile', async () => {
-    const getUsers = gql `
-       query {
-            users {
-                id
-                name
-                email
-            }
-       }
-    `;
+
+    // Refactoring as since we use variables
+    // const getUsers = gql `
+    //     query {
+    //         users {
+    //             id
+    //             name
+    //             email
+    //         }
+    //     }
+    // `;
 
     const response = await client.query({ query: getUsers });
     expect(response.data.users.length).toBe(1);
     expect(response.data.users[0].email).toBe(null);
-    expect(response.data.users[0].name).toBe('Jan')
+    expect(response.data.users[0].name).toBe('Jan');
+
 });
 
 test('should throw an error with bad credentials', async () => {
-    const login = gql `
-        mutation {
-            login(
-                data: {
-                    email: "jan@gmail.com"
-                    password: "asdf"
-                }
-            ) {
-                token
-            }
+
+    const variables = {
+        data: {
+            email: "jan@gmail.com",
+            password: "asdf"
         }
-    `;
+    }
+
 
     // client.mutate({ mutation: login }) is promise
     // Use Promise "rejects" and then check if the code throw an error 
     //  when it is rejected
     await expect(
-        client.mutate({ mutation: login })
+        client.mutate({ mutation: login, variables })
     ).rejects.toThrow();
+
+
+    // 1) Without Variables
+    // const login = gql `
+    //     mutation {
+    //         login(
+    //             data: {
+    //                 email: "jan@gmail.com",
+    //                 password: "asdf"
+    //             }
+    //         ) {
+    //             token
+    //             user {
+    //                 id
+    //                 name
+    //                 email
+    //             }
+    //         }
+    //     }
+    // `;
+
+
+    // await expect(
+    //     client.mutate({ mutation: login })
+    // ).rejects.toThrow();
     
     // It is wrong syntax becaue "client.mutate({ mutations: login})"
     //  must be fired off in the call back args in expect and then,
@@ -151,27 +248,43 @@ test('should throw an error with bad credentials', async () => {
     // Then, the result passes to the next promise "rejects"
     // const response = await client.mutate({ mutation: login });
     // await expect(response).rejects.toThrow();
+
 });
 
 test('should throw an error with invalid password', async () => {
 
-    const createUser = gql `
-        mutation {
-            createUser(
-                data: {
-                    email: "aaa@aaa.com"
-                    name: "Jeffry"
-                    password: "aaa"
-                }
-            ) {
-                token
-            }
+    const variables = {
+        data: {
+            email: "aaa@aaa.com",
+            name: "Jeffry",
+            password: "aaa"
         }
-    `;
+    }
 
     await expect(
-        client.mutate({ mutation: createUser })
+        client.mutate({ mutation: createUser, variables })
     ).rejects.toThrow();
+    
+
+    // 1) Without Variable
+    // const createUser = gql `
+    //     mutation {
+    //         createUser(
+    //             data: {
+    //                 email: "aaa@aaa.com"
+    //                 name: "Jeffry"
+    //                 password: "aaa"
+    //             }
+    //         ) {
+    //             token
+    //         }
+    //     }
+    // `;
+
+    // await expect(
+    //     client.mutate({ mutation: createUser })
+    // ).rejects.toThrow();
+    
 });
 
 // With jwt
@@ -182,15 +295,16 @@ test('Should fetch user profile', async () => {
     // For "Jan", new jwt is created ahead in seedDatabase  
     const client = getClient(userOne.jwt);
 
-    const getProfile = gql `
-        query {
-            me {
-                id
-                name
-                email
-            }
-        }
-    `;
+    // 1) Without variables
+    // const getProfile = gql `
+    //     query {
+    //         me {
+    //             id
+    //             name
+    //             email
+    //         }
+    //     }
+    // `;
 
     const { data } = await client.query({ query: getProfile });
     expect(data.me.id).toBe(userOne.user.id);
