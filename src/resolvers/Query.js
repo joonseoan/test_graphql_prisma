@@ -79,7 +79,6 @@ const Query = {
 
     },
     async me(parent, args, { prisma, request }, info) {
-        console.log('me working?????????????????????')
         
         const userId = getUserId(request);
         const user = await prisma.query.user({

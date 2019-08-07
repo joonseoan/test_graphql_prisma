@@ -14,7 +14,25 @@ export const userOne = {
     },
     user: undefined,
     jwt: undefined
-}
+};
+
+export const postOne = {
+    input: {
+        title: 'The first test',
+        body: 'Test should work as I did in User',
+        published: true
+    },
+    post: undefined
+};
+
+export const postTwo = {
+    input: {
+        title: 'The second test',
+        body: 'Great test will build a higher quality product',
+        published: false
+    },
+    post: undefined
+};
 
 
 // 2) To be more modularized
@@ -51,11 +69,10 @@ export default async () => {
     //     }
     // });
 
-    await prisma.mutation.createPost({
+    // postOne
+    postOne.post = await prisma.mutation.createPost({
         data: {
-            title: 'The first test',
-            body: 'Test should work as I did in User',
-            published: true,
+            ...postOne.input,
             author: {
                 connect: {
                     // since we use "userOne.user" which received the reutrned data
@@ -66,11 +83,10 @@ export default async () => {
         }
     });
 
-    await prisma.mutation.createPost({
+    // postTwo
+    postTwo.post = await prisma.mutation.createPost({
         data: {
-            title: 'The second test',
-            body: 'Great test will build a higher quality product',
-            published: false,
+            ...postTwo.input,
             author: {
                 connect: {
                     // same as above
