@@ -4,7 +4,7 @@
 //  Therefore we need to use cross-fetch with polyfill.
 import 'cross-fetch/polyfill';
 // For test, test itself must be a client to fetch and mustate the data
-import { gql } from 'apollo-boost';
+// import { gql } from 'apollo-boost';
 
 // [Moving to seedDatabase.js to be used in other test]
 //encoding the password
@@ -19,7 +19,7 @@ const client = getClient();
 // 3) 
 import seedDatabase, { userOne } from './utils/seedDatabase';
 
-import { createUser, getProfile, getUsers, login } from './utils/operations';
+import { createUser, getProfile, getUsers, login } from './utils/user_operations';
 beforeEach(seedDatabase);
 
 // 2) It is working but not much modularized. 
@@ -194,7 +194,7 @@ test('should expose public author profile', async () => {
     // `;
 
     const response = await client.query({ query: getUsers });
-    expect(response.data.users.length).toBe(1);
+    expect(response.data.users.length).toBe(2);
     expect(response.data.users[0].email).toBe(null);
     expect(response.data.users[0].name).toBe('Jan');
 

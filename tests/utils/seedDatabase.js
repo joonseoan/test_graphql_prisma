@@ -16,6 +16,16 @@ export const userOne = {
     jwt: undefined
 };
 
+export const userTwo = {
+    input: {
+        name: 'Kevin',
+        email: 'kevin@gmail.com',
+        password: bcrypt.hashSync('asdfghjk')
+    },
+    user: undefined,
+    jwt: undefined
+};
+
 export const postOne = {
     input: {
         title: 'The first test',
@@ -34,9 +44,25 @@ export const postTwo = {
     post: undefined
 };
 
+export const commentOne = {
+    input: {
+        text: 'Comment One'
+    },
+    comment: undefined
+}
+
+export const commentTwo = {
+    input: {
+        text: 'Comment two'
+    },
+    comment: undefined
+}
+
 
 // 2) To be more modularized
 export default async () => {
+
+    await prisma.mutation.deleteManyComments();
 
     await prisma.mutation.deleteManyPosts();
 
@@ -55,6 +81,15 @@ export default async () => {
     
     // Keep in mind again that like above, it does not go through the logcal graphql resolvers
     userOne.jwt = jwt.sign({ userId: userOne.user.id }, process.env.PRISMA_JWT_SECRET);
+
+    userTwo.user = await prisma.mutation.createUser({
+        data: userTwo.input
+    });
+
+    userTwo.jwt = jwt.sign({ userId: userTwo.user.id }, process.env.PRISMA_JWT_SECRET);
+
+
+
 
     // 1) without JWT
     // building seed data only in the server side, not the client side
@@ -97,6 +132,40 @@ export default async () => {
         }
 
     });
+
+    commentOne.comment = await prisma.mutation.createComment({
+        data: {
+            ...commentOne.input,
+            post: {
+                connect: {
+                    id: postOne.post.id
+                }
+            },
+            author: {
+                connect: {
+                    id: userTwo.user.id
+                }
+            }
+        }
+    });
+
+    commentTwo.comment = await prisma.mutation.createComment({
+        data: {
+            ...commentTwo.input,
+            post: {
+                connect: {
+                    id: postOne.post.id
+                }
+            },
+            author: {
+                connect: {
+                    id: userTwo.user.id
+                }
+            }
+        }
+    });
+
+
 };
 
 
