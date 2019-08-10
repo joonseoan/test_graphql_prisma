@@ -143,7 +143,7 @@ export default async () => {
             },
             author: {
                 connect: {
-                    id: userTwo.user.id
+                    id: userOne.user.id
                 }
             }
         }
