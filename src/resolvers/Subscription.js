@@ -44,7 +44,6 @@ const Subscription = {
             return post;
         }
     }
-
 }
 
 export default Subscription;

@@ -3,7 +3,7 @@ import { gql } from 'apollo-boost';
 
 import prisma from '../src/prisma';
 import seedDatabase, { userOne, postOne, postTwo } from './utils/seedDatabase';
-import { getPosts, myPosts, createPost, updatePost, deletePost } from './utils/post_operations';
+import { getPosts, myPosts, createPost, updatePost, deletePost, subscribeToPosts } from './utils/post_operations';
 import getClient from './utils/getClient';
 
 const client = getClient();
@@ -146,4 +146,17 @@ test('Should delete the designated post', async () => {
     expect(data.deletePost.id).toBe(postTwo.post.id);
     expect(data.deletePost.author.id).toBe(userOne.user.id);
     expect(exist).toBe(false);
+});
+
+test('Should subscribe to post', async done => {
+    client.subscribe({ query: subscribeToPosts }).subscribe({
+        next(response) {
+            expect(response.data.post.mutation).toBe('DELETED');
+            done();
+        }
+    });
+
+    await prisma.mutation.deletePost({ where: { id: postOne.post.id }});
+
 })
+
